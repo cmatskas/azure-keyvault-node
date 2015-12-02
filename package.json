@@ -1,0 +1,15 @@
+{
+  "name": "keyvaulttest",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node ./main.js"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "adal-node": "^0.1.17",
+    "async": "^1.5.0",
+    "azure-keyvault": "^0.10.1",
+    "restify": "^4.0.3"
+  }
+}
