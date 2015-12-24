@@ -12,13 +12,15 @@ var secret = 'My custom secret value - oh yes!';
 //  var secretId;
 var kid;
 var plainText = '1234567890';
-//  var cipherText;
+var cipherText;
 
 function createkey(keyname, callback){
   var request = { kty: "RSA", key_ops: ["encrypt", "decrypt"] };
   console.info('Creating key...');
   client.createKey(vaultUri, keyname, request, function(err, result) {
-    if (err) throw err;
+    if (err) {
+        throw err;
+    }
     console.info('Key created: ' + JSON.stringify(result));
     kid = result.key.kid;
     callback(result);
@@ -28,7 +30,10 @@ function createkey(keyname, callback){
 function deletekey(keyname, callback){
   console.info('Deleting key...');
   client.deleteKey(vaultUri, keyname, function(err, result){
-    if(err) throw err;
+    if(err) {
+        throw err;
+    }
+    kid = null;
     console.info('Key deleted: ' + JSON.stringify(result));
     callback(result);
   })
@@ -37,10 +42,35 @@ function deletekey(keyname, callback){
 function getallkeys(maxresults, callback){
   console.info(`Retrieving ${maxresults} keys...`);
   client.getKeys(vaultUri, maxresults, function(err, result){
-    if(err) throw err;
-    console.info('Keys returned: ' + result);
+    if(err) {
+        throw err;
+    }
+    console.info(`${result.value.length} keys returned.`);
     callback(result);
   })
+}
+
+function encrypt(kid, textToEncrypt, callback){
+  console.info(`Encrypting ${textToEncrypt}`);
+  client.encrypt(kid, 'RSA-OAEP', new Buffer(textToEncrypt), function(err, result) {
+      if (err) {
+          throw err;
+      }
+      console.info('Encryption result: ' + JSON.stringify(result));
+      cipherText = result.value;
+      callback(result);
+    });
+}
+
+function decrypt(kid, cipherText, callback){
+    console.info(`Decrypting value ${cipherText}`);
+    client.decrypt(kid,'RSA-OAEP', cipherText, function (err, result){
+        if (err){
+            throw err;
+        }    
+        console.info('Decryption result: ' + JSON.stringify(result));
+        callback(result);
+    })
 }
 
 
@@ -59,4 +89,6 @@ function authenticator(challenge, callback) {
 module.exports.createkey = createkey;
 module.exports.deletekey = deletekey;
 module.exports.getallkeys = getallkeys;
+module.exports.encrypt = encrypt;
+module.exports.decrypt = decrypt;
 module.exports.kid = kid;
