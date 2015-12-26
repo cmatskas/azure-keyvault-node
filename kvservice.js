@@ -8,10 +8,7 @@ var credentials = new azureKeyVault.KeyVaultCredentials(authenticator);
 var client = new azureKeyVault.KeyVaultClient(credentials);
 
 var vaultUri = 'https://CmTestVault1.vault.azure.net';
-var secret = 'My custom secret value - oh yes!';
-//  var secretId;
 var kid;
-var plainText = '1234567890';
 var cipherText;
 
 function createkey(keyname, callback){
@@ -73,6 +70,16 @@ function decrypt(kid, cipherText, callback){
     })
 }
 
+function createSecret(secretName, secretValue, callback){
+    var request = {'value': secretValue};
+    client.setSecret(vaultUri, secretName, request, function(err, result) {
+      if (err) {
+          throw err;
+      }
+      console.info('Secret written: ' + JSON.stringify(result, null, ' '));
+      callback(result)
+    });
+}
 
 function authenticator(challenge, callback) {
   // Create a new authentication context. 
@@ -91,4 +98,5 @@ module.exports.deletekey = deletekey;
 module.exports.getallkeys = getallkeys;
 module.exports.encrypt = encrypt;
 module.exports.decrypt = decrypt;
+module.exports.createSecret = createSecret;
 module.exports.kid = kid;
