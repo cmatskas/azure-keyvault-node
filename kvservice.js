@@ -2,26 +2,22 @@ var adalNode = require('adal-node'); // Used for authentication
 var moment = require('moment');
 var azureKeyVault = require('azure-keyvault');
 
-var clientId = '1096a562-a184-4169-915d-2545881801f9';
-var clientSecret = 'yBoY1kg4TL70ivlRSqcRmCSfbfVDQj4CNrvDTlc57AY=';
+var clientId = '<your Azure AD Application Id>';
+var clientSecret = '<your Azure AD Application secret>';
+var vaultUri = '<your keyvault base URL>';
+var apiVersion = 'api-version=2016-10-01';
 
 var credentials = new azureKeyVault.KeyVaultCredentials(authenticator);
 var client = new azureKeyVault.KeyVaultClient(credentials);
 
-var vaultUri = 'https://cmkeyvault1234.vault.azure.net';
-var apiVersion = 'api-version=2016-10-01';
-var kid;
-var cipherText;
-
 function createkey(keyname, callback){
-  console.info('Creating key...');
+  console.info(`Creating key with name: ${keyname}`);
   let keyType = 'RSA';
   client.createKey(vaultUri, keyname, keyType, getKeyOptions(), function(err, result) {
     if (err) {
         throw err;
     }
     console.info('Key created: ' + JSON.stringify(result));
-    kid = result.key.kid;
     callback(result);
   });
 }
@@ -32,7 +28,6 @@ function deletekey(keyname, callback){
     if(err) {
         throw err;
     }
-    kid = null;
     console.info('Key deleted: ' + JSON.stringify(result));
     callback(result);
   })
@@ -56,14 +51,13 @@ function encrypt(kid, textToEncrypt, callback){
           throw err;
       }
       console.info('Encryption result: ' + JSON.stringify(result));
-      cipherText = result.value;
-      callback(result);
+      callback(result.result.toString('base64'));
     });
 }
 
 function decrypt(kid, cipherText, callback){
     console.info(`Decrypting value ${cipherText}`);
-    client.decrypt(kid,'RSA-OAEP', cipherText, function (err, result){
+    client.decrypt(kid,'RSA-OAEP', Buffer.from(cipherText, 'base64'), function (err, result){
         if (err){
             throw err;
         }    
@@ -148,4 +142,3 @@ module.exports.decrypt = decrypt;
 module.exports.createSecret = createSecret;
 module.exports.getSecret = getSecret;
 module.exports.deleteSecret = deleteSecret;
-module.exports.kid = kid;
