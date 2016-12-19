@@ -1,13 +1,14 @@
 var adalNode = require('adal-node'); // Used for authentication 
 var azureKeyVault = require('azure-keyvault');
 
-var clientId = '1bbb4fd3-e903-4b00-afcb-afb9582b68b8';
-var clientSecret = '9wDEgDndxLkxvZzuVm78Ux4cUcY/sYTt3kW77N3SLSA=';
+var clientId = '<your AD Application ID>';
+var clientSecret = '<your AD application secret>';
 
 var credentials = new azureKeyVault.KeyVaultCredentials(authenticator);
 var client = new azureKeyVault.KeyVaultClient(credentials);
 
-var vaultUri = 'https://CmTestVault1.vault.azure.net';
+var vaultUri = '<your key vault uri>';
+var apiVersion = 'api-version=2016-10-01';
 var kid;
 var cipherText;
 
@@ -71,13 +72,31 @@ function decrypt(kid, cipherText, callback){
 }
 
 function createSecret(secretName, secretValue, callback){
-    var request = {'value': secretValue};
-    client.setSecret(vaultUri, secretName, request, function(err, result) {
+    console.info(`Creating new secret with name ${secretName} and value ${secretValue}`);
+    var attributes = { expires: new Date(2016,12,31) };
+    var secretOptions = {
+        contentType: 'text/json',
+        secretAttributes: attributes
+    };
+
+    client.setSecret(vaultUri, secretName, secretValue, secretOptions, function(err, result) {
       if (err) {
           throw err;
       }
       console.info('Secret written: ' + JSON.stringify(result, null, ' '));
       callback(result)
+    });
+}
+
+function getSecret(secretName, secretVersion, callback){
+    var secretUri = vaultUri + "/secrets/" + secretName + '/' + secretVersion + '?' + apiVersion;
+    console.info(`Retrieving secret: ${secretUri}`);
+    client.getSecret(secretUri, null, function(err, result){
+        if (err) {
+            throw err;
+        }
+        console.log(`Secret value returned: ${result.value}`);
+        callback(result);
     });
 }
 
@@ -99,4 +118,5 @@ module.exports.getallkeys = getallkeys;
 module.exports.encrypt = encrypt;
 module.exports.decrypt = decrypt;
 module.exports.createSecret = createSecret;
+module.exports.getSecret = getSecret;
 module.exports.kid = kid;

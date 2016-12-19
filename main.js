@@ -52,6 +52,12 @@ server.get('/createsecret/:secretname/:secretvalue', function(req, res, next){
     next();
 })
 
+server.get('/getsecret/:secretname/:secretversion', function(req, res, next){
+  kvservice.getSecret(req.params.secretname, req.params.secretversion, function(result){
+    res.send(result.value.toString());
+  })
+})
+
 server.listen(port, function(){
   console.log(`${server.name} listening at ${server.url}`);
 });
