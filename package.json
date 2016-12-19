@@ -1,15 +1,34 @@
 {
   "name": "keyvaulttest",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "private": true,
   "scripts": {
     "start": "node ./main.js"
   },
-  "dependencies": {},
+  "dependencies": {
+    "moment": "^2.17.1"
+  },
   "devDependencies": {
     "adal-node": "^0.1.17",
     "async": "^2.1.4",
     "azure-keyvault": "^1.0.0",
     "restify": "^4.0.3"
-  }
+  },
+  "description": "Test node.js app to test the Azure Node SDK",
+  "main": "main.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cmatskas/azure-keyvault-node.git"
+  },
+  "keywords": [
+    "node.js",
+    "azure",
+    "key-vault"
+  ],
+  "author": "christos matskas",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/cmatskas/azure-keyvault-node/issues"
+  },
+  "homepage": "https://github.com/cmatskas/azure-keyvault-node#readme"
 }

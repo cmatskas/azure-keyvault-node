@@ -7,7 +7,7 @@ var port = 3000;
 var server = restify.createServer();
 server.use(restify.queryParser());
 
-server.get('/createkey/:keyname', function(req, res, next){
+server.post('/createkey/:keyname', function(req, res, next){
   kvservice.createkey(req.params.keyname, function(result){
     res.send(`key created successfully: ${result.key.kid}`);
   });
@@ -45,7 +45,7 @@ server.get('/decrypt/', function(req, res, next){
     next();
 })
 
-server.get('/createsecret/:secretname/:secretvalue', function(req, res, next){
+server.post('/createsecret/:secretname/:secretvalue', function(req, res, next){
     kvservice.createSecret(req.params.secretname, req.params.secretvalue, function(result){
         res.send(result.id);
     });
@@ -55,8 +55,16 @@ server.get('/createsecret/:secretname/:secretvalue', function(req, res, next){
 server.get('/getsecret/:secretname/:secretversion', function(req, res, next){
   kvservice.getSecret(req.params.secretname, req.params.secretversion, function(result){
     res.send(result.value.toString());
-  })
+  });
+  next();
 })
+
+server.del('/deletesecret/:secretname', function(req, res, next){
+  kvservice.deleteSecret(req.params.secretname, function(result){
+    res.send('Secret deleted successfully');
+  })
+  next();
+});
 
 server.listen(port, function(){
   console.log(`${server.name} listening at ${server.url}`);

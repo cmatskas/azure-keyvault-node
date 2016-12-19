@@ -1,21 +1,22 @@
 var adalNode = require('adal-node'); // Used for authentication 
+var moment = require('moment');
 var azureKeyVault = require('azure-keyvault');
 
-var clientId = '<your AD Application ID>';
-var clientSecret = '<your AD application secret>';
+var clientId = '1096a562-a184-4169-915d-2545881801f9';
+var clientSecret = 'yBoY1kg4TL70ivlRSqcRmCSfbfVDQj4CNrvDTlc57AY=';
 
 var credentials = new azureKeyVault.KeyVaultCredentials(authenticator);
 var client = new azureKeyVault.KeyVaultClient(credentials);
 
-var vaultUri = '<your key vault uri>';
+var vaultUri = 'https://cmkeyvault1234.vault.azure.net';
 var apiVersion = 'api-version=2016-10-01';
 var kid;
 var cipherText;
 
 function createkey(keyname, callback){
-  var request = { kty: "RSA", key_ops: ["encrypt", "decrypt"] };
   console.info('Creating key...');
-  client.createKey(vaultUri, keyname, request, function(err, result) {
+  let keyType = 'RSA';
+  client.createKey(vaultUri, keyname, keyType, getKeyOptions(), function(err, result) {
     if (err) {
         throw err;
     }
@@ -73,9 +74,9 @@ function decrypt(kid, cipherText, callback){
 
 function createSecret(secretName, secretValue, callback){
     console.info(`Creating new secret with name ${secretName} and value ${secretValue}`);
-    var attributes = { expires: new Date(2016,12,31) };
+    var attributes = { expires: moment().add(1, "year") };
     var secretOptions = {
-        contentType: 'text/json',
+        contentType: 'application/text',
         secretAttributes: attributes
     };
 
@@ -84,6 +85,18 @@ function createSecret(secretName, secretValue, callback){
           throw err;
       }
       console.info('Secret written: ' + JSON.stringify(result, null, ' '));
+      callback(result)
+    });
+}
+
+function deleteSecret(secretName, callback){
+    console.info(`Deleting secret with name ${secretName}`);
+    
+    client.deleteSecret(vaultUri, secretName, function(err, result) {
+      if (err) {
+          throw err;
+      }
+      console.info('Secret deleted successfully');
       callback(result)
     });
 }
@@ -112,6 +125,21 @@ function authenticator(challenge, callback) {
   });
 }
 
+function getKeyOptions(){
+    var attributes = {};
+    attributes.enabled = true;
+    attributes.notBefore = moment().toNow();
+    attributes.expires = moment().add(1,"year");
+
+    let keyOptions = {};
+    keyOptions.keySize = 2048;
+    keyOptions.keyOps = ['encrypt', 'decrypt', 'sign', 'verify', 'wrapKey', 'unwrapKey'];
+    keyOptions.tags = null;
+    keyOptions.keyAttributes = JSON.stringify(attributes);
+
+    return JSON.stringify(keyOptions);
+}
+
 module.exports.createkey = createkey;
 module.exports.deletekey = deletekey;
 module.exports.getallkeys = getallkeys;
@@ -119,4 +147,5 @@ module.exports.encrypt = encrypt;
 module.exports.decrypt = decrypt;
 module.exports.createSecret = createSecret;
 module.exports.getSecret = getSecret;
+module.exports.deleteSecret = deleteSecret;
 module.exports.kid = kid;
